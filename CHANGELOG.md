@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-09-27
+
+Documentation-only release. No code or behaviour changes; upgrading from 0.2.0 is a drop-in.
+
+### Changed
+- **The gem is parked.** 0.2.x is the final HMAC-only line and no new features are planned; the
+  asymmetric signing (RS256/ES256) previously announced as "planned" will not be built here. The
+  README's new "Status: parked" section explains when the gem still fits (a few services you control
+  that share one secret), when it doesn't (an SSO hub or authorization server should sign with a
+  private key and publish a JWKS), and the possible future as a `client_credentials` token fetcher.
+- Gemspec summary and description state the parked status, so it shows on rubygems.org.
+- README: the example `issuer` is now `orders_api`, and the `Issuable` bullet no longer suggests an
+  SSO hub as a use case; the verifier is referred to by its gem name, `rack-jwt-verifier`.
+
 ## [0.2.0] - 2026-09-13
 
 Security-hardening release. Several changes are **breaking**; see the upgrade notes below.

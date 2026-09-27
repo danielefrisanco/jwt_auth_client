@@ -7,9 +7,11 @@ Gem::Specification.new do |spec|
   spec.version       = JwtAuthClient::VERSION
   spec.authors       = ["Daniele Frisanco"]
   spec.email         = ["daniele.frisanco@gmail.com"]
-  spec.summary       = "Secure client for generating and sending internal service-to-service JWTs."
-  spec.description   = "Generates short-lived, signed JWTs for internal API calls and injects them " \
-                       "into Faraday requests as Bearer tokens."
+  spec.summary       = "Issues short-lived HMAC-signed JWTs for internal service-to-service calls (parked)."
+  spec.description   = "Generates short-lived, HMAC-signed JWTs for internal API calls and injects them " \
+                       "into Faraday requests as Bearer tokens. Parked: 0.2.x is the final HMAC-only line " \
+                       "and no new features are planned. An SSO hub or authorization server should sign " \
+                       "with a private key and publish a JWKS instead; see the README."
   spec.homepage      = "https://github.com/danielefrisanco/jwt_auth_client"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.1"

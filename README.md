@@ -7,12 +7,30 @@ between your own services.
   custom claims. HMAC only (`HS256`/`HS384`/`HS512`) with enforced key length; `none` is rejected.
 - **Faraday client** — a connection that mints a fresh token per request, with timeouts,
   JSON encode/decode, error raising and opt-in retries.
-- **`Issuable` mixin** — give a model a `#to_jwt` method (e.g. an SSO hub handing an identity
-  token to a client app).
+- **`Issuable` mixin** — give a model a `#to_jwt` method.
 - **Fails at boot, not at runtime** — misconfiguration raises `JwtAuthClient::ConfigurationError`
   from `JwtAuthClient.configure`.
 
-Requires Ruby >= 3.1. Pairs with a verifier such as `rack_jwt_verifier` on the receiving side.
+Requires Ruby >= 3.1. Pairs with [`rack-jwt-verifier`](https://github.com/danielefrisanco/rack_jwt_verifier)
+(HMAC mode, `shared_secret:`) on the receiving side.
+
+## Status: parked
+
+**0.2.x is the final HMAC-only line. No new features are planned**, and the asymmetric signing
+mentioned in earlier docs will not be built here. 0.2.x keeps working as documented below.
+
+- **Good fit:** a few services you control that already share one secret and call each other.
+- **Not a fit:** an SSO hub, authorization server or any issuer whose tokens many services trust.
+  Anyone who holds a shared HMAC secret can mint a token for any audience. An issuer like that
+  should sign with a private key and publish a JWKS, so that services can verify tokens but not
+  mint them. For an example, see [SecureSSOHub](https://github.com/danielefrisanco/SecureSSOHub)
+  (Doorkeeper + doorkeeper-jwt, RS256) with
+  [`rack-jwt-verifier`](https://github.com/danielefrisanco/rack_jwt_verifier) in JWKS mode on the
+  services. SecureSSOHub itself stopped using this gem for that reason.
+- **Later:** the gem may be reworked into a client that *fetches* tokens from an authorization
+  server with the OAuth 2.0 `client_credentials` grant (RFC 6749 §4.4) instead of signing them.
+  That would be a breaking release. It may instead be retired in favour of the
+  [`oauth2`](https://github.com/ruby-oauth/oauth2) gem.
 
 ## Installation
 
@@ -35,7 +53,7 @@ JwtAuthClient.configure do |config|
   config.shared_secret = ENV.fetch("JWT_SERVICE_SECRET")
 
   # Required. Identifies this application in the `iss` claim.
-  config.issuer = "main_app_sso"
+  config.issuer = "orders_api"
 
   config.algorithm = "HS256"           # HS256 | HS384 | HS512  (default HS256)
   config.default_expiry_seconds = 300  # token lifetime (default 300)
@@ -156,7 +174,7 @@ Override `#jwt_subject` to choose a different `sub`.
 
 ```json
 {
-  "iss": "main_app_sso",
+  "iss": "orders_api",
   "sub": "service-account-etl",
   "aud": "billing_api",
   "scopes": ["read:invoices"],
@@ -184,7 +202,7 @@ All gem errors inherit from `JwtAuthClient::Error`.
   never set `ssl: { verify: false }` on the connection.
 - **Secret handling:** load the secret from the environment or a secret manager, rotate it, and never
   commit it. Every service holding the secret can mint tokens for every `aud`, so keep the set of
-  holders small. Asymmetric signing (RS256/ES256, private key on the issuer only) is planned.
+  holders small. Asymmetric signing is not planned for this gem (see [Status](#status-parked)).
 - **Verifier side:** verify the signature *and* `iss`, `aud`, `exp`, `nbf`; allow a small leeway
   (e.g. 30 s) for clock skew; optionally track `jti` to detect replays.
 - **Lifetime:** keep `default_expiry_seconds` short (minutes). Use `expiry_seconds:` for one-off tokens
